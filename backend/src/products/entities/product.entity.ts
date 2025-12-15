@@ -1,16 +1,20 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Customer } from 'src/customers/entities/customer.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Product {
-  @PrimaryColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
   name: string;
 
-  @Column()
+  @Column({ nullable: true })
   description: string;
 
   @Column()
   price: number;
+
+  // @ManyToOne(() => Customer, (customer) => customer.products)
+  // customer: Customer;
 }
