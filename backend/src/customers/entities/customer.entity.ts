@@ -14,7 +14,13 @@ export class Customer {
   email: string;
 
   @Column()
-  password: string; // hashed
+  password: string;
+
+  @Column('int', { array: true, default: [] })
+  orderIds: number[];
+
+  @Column({ nullable: true })
+  ownerId: string | null;
 
   //   @OneToMany(() => Product, (product) => product.customer)
   //   products: Product[];

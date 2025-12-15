@@ -5,7 +5,7 @@ import { useState } from "react";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type Props = {
-  onCreated?: () => void; // optional: Liste neu laden
+  onCreated?: () => void;
 };
 
 export function CreateProductForm({ onCreated }: Props) {
@@ -32,7 +32,7 @@ export function CreateProductForm({ onCreated }: Props) {
         body: JSON.stringify({
           name: form.name,
           description: form.description,
-          price: Number(form.price), // wichtig für DTO
+          price: Number(form.price),
         }),
       });
 

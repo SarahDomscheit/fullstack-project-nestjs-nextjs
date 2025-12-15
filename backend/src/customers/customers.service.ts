@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { CreateCustomerDto } from './dto/create.customer.dto';
 import { UpdateCustomerDto } from './dto/update.customer.dto';
 import * as bcrypt from 'bcrypt';
@@ -33,6 +33,21 @@ export class CustomersService {
       throw new NotFoundException(`Customer not found`);
     }
     return customer;
+  }
+
+  findAllForUser(userId: string) {
+    return this.customerRepository.find({ where: { ownerId: userId } });
+  }
+
+  async updateForUser(userId: string, id: string, dto: UpdateCustomerDto) {
+    const customer = await this.customerRepository.findOne({
+      where: { id, ownerId: userId },
+    });
+    if (!customer) {
+      throw new NotFoundException(`Customer not found`);
+    }
+    Object.assign(customer, dto);
+    return this.customerRepository.save(customer);
   }
 
   async create(dto: CreateCustomerDto): Promise<Customer> {
