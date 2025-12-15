@@ -17,6 +17,14 @@ export class ProductsService {
     return this.productRepository.save(product);
   }
 
+  async createForUser(userId: string, dto: CreateProductDto) {
+    const product = this.productRepository.create({
+      ...dto,
+      ownerId: userId,
+    });
+    return this.productRepository.save(product);
+  }
+
   findAll(): Promise<Product[]> {
     return this.productRepository.find();
   }
@@ -41,6 +49,13 @@ export class ProductsService {
   async remove(id: string): Promise<void> {
     const product = await this.productRepository.delete(id);
     if (product.affected === 0) {
+      throw new NotFoundException('Product not found');
+    }
+  }
+
+  async removeForUser(userId: string, id: string): Promise<void> {
+    const result = await this.productRepository.delete({ id, ownerId: userId });
+    if (result.affected === 0) {
       throw new NotFoundException('Product not found');
     }
   }

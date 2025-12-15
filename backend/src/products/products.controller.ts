@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
@@ -38,13 +39,17 @@ export class ProductsController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+    @Request() req,
+  ) {
     return this.productsService.update(id, updateProductDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productsService.remove(id);
+  remove(@Param('id') id: string, @Request() req) {
+    return this.productsService.removeForUser(req.user.userId, id);
   }
 }

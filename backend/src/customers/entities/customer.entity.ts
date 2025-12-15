@@ -19,7 +19,7 @@ export class Customer {
   @Column('int', { array: true, default: [] })
   orderIds: number[];
 
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   ownerId: string | null;
 
   //   @OneToMany(() => Product, (product) => product.customer)

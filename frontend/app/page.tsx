@@ -1,45 +1,148 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useAuthStore } from "./stores/auth-store";
 
 type Product = {
-  id: number;
+  id: string;
   name: string;
   description?: string;
   price: number;
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export default function ProductsPage() {
+export default function HomePage() {
+  const { currentUser, logout } = useAuthStore();
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const loadProducts = async () => {
-    const res = await fetch(`${API_URL}/products`);
-    const data = await res.json();
-    setProducts(data);
+  const loadLatestProducts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch(`${API_URL}/products`);
+      if (!res.ok) {
+        throw new Error(`Failed to load products (${res.status})`);
+      }
+      const data: Product[] = await res.json();
+      const latest = data.slice(-5).reverse();
+      setProducts(latest);
+    } catch (err: any) {
+      setError(err.message ?? "Unknown error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    loadProducts();
+    loadLatestProducts();
   }, []);
 
   return (
-    <main className="p-6">
-      <h1 className="mb-4 text-2xl font-semibold">Products</h1>
-      <ul className="space-y-2">
-        {products.map((p) => (
-          <li key={p.id} className="rounded border bg-white px-3 py-2">
-            <div className="font-medium">{p.name}</div>
-            {p.description && (
-              <div className="text-sm text-slate-600">{p.description}</div>
-            )}
-            <div className="text-sm font-semibold">
-              {Number(p.price).toFixed(2)} €
-            </div>
-          </li>
-        ))}
-      </ul>
+    <main className="mx-auto max-w-5xl space-y-8 p-6">
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Minimal Shop</h1>
+          <p className="text-sm text-slate-600">
+            Ein kleiner Demo‑Shop mit NestJS &amp; Next.js.
+          </p>
+          {currentUser && (
+            <p className="mt-2 text-sm text-slate-700">
+              Willkommen zurück, {currentUser.name ?? currentUser.email}!
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          {!currentUser && (
+            <>
+              <Link
+                href="/login"
+                className="rounded border border-slate-300 px-3 py-2 text-sm font-medium"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+              >
+                Registrieren
+              </Link>
+            </>
+          )}
+
+          {currentUser && (
+            <button
+              onClick={logout}
+              className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+            >
+              Logout
+            </button>
+          )}
+        </div>
+      </header>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Letzte Produkte</h2>
+          <Link
+            href="/products"
+            className="text-sm font-medium text-slate-900 underline"
+          >
+            Alle Produkte ansehen
+          </Link>
+        </div>
+
+        {error && (
+          <p className="rounded bg-red-100 px-3 py-2 text-sm text-red-800">
+            {error}
+          </p>
+        )}
+
+        {loading && products.length === 0 ? (
+          <p>Loading…</p>
+        ) : products.length === 0 ? (
+          <p className="text-sm text-slate-500">
+            Es wurden noch keine Produkte angelegt.
+          </p>
+        ) : (
+          <ul className="grid gap-4 md:grid-cols-2">
+            {products.map((p) => (
+              <li key={p.id} className="rounded border p-4 shadow-sm">
+                <h3 className="text-sm font-semibold">{p.name}</h3>
+                <p className="mt-1 text-xs text-slate-600">
+                  {p.description || "Keine Beschreibung"}
+                </p>
+                <p className="mt-2 text-sm font-medium">{p.price} €</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="space-y-2">
+        {!currentUser && (
+          <>
+            <h2 className="text-lg font-semibold">Loslegen</h2>
+            <p className="text-sm text-slate-600">
+              Melde dich an oder registriere dich, um eigene Produkte anzulegen
+              und zu verwalten.
+            </p>
+          </>
+        )}
+
+        <div className="flex gap-3">
+          <Link
+            href="/products"
+            className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+          >
+            Zum Produktbereich
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }

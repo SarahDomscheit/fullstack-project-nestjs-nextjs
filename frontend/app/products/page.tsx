@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuthStore } from "../stores/auth-store";
+import { apiFetch } from "../lib/api";
 
 type Product = {
-  id: number;
+  id: string;
   name: string;
   description?: string;
   price: number;
@@ -12,13 +14,27 @@ type Product = {
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 export default function ProductsPage() {
+  const { currentUser, logout } = useAuthStore();
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", description: "", price: "" });
 
   const loadProducts = async () => {
-    const res = await fetch(`${API_URL}/products`);
-    const data = await res.json();
-    setProducts(data);
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch(`${API_URL}/products`); // public GET
+      if (!res.ok) {
+        throw new Error(`Failed to load products (${res.status})`);
+      }
+      const data: Product[] = await res.json();
+      setProducts(data);
+    } catch (err: any) {
+      setError(err.message ?? "Unknown error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -32,100 +48,178 @@ export default function ProductsPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await fetch(`${API_URL}/products`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: form.name,
-        description: form.description,
-        price: Number(form.price),
-      }),
-    });
-    setForm({ name: "", description: "", price: "" });
-    await loadProducts();
+    if (!currentUser) {
+      setError("Bitte zuerst einloggen.");
+      return;
+    }
+    try {
+      setError(null);
+      setLoading(true);
+      const res = await apiFetch("/products", {
+        method: "POST",
+        body: JSON.stringify({
+          name: form.name,
+          description: form.description,
+          price: Number(form.price),
+        }),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Failed to create product (${res.status})`);
+      }
+      const created: Product = await res.json();
+      setProducts((prev) => [...prev, created]);
+      setForm({ name: "", description: "", price: "" });
+    } catch (err: any) {
+      setError(err.message ?? "Unknown error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="grid gap-6 md:grid-cols-[2fr,1fr]">
-      <section>
-        <h1 className="mb-4 text-2xl font-semibold">Products</h1>
-        <div className="rounded-md bg-white shadow-sm">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="border-b px-3 py-2 text-left">Name</th>
-                <th className="border-b px-3 py-2 text-left">Description</th>
-                <th className="border-b px-3 py-2 text-right">Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50">
-                  <td className="border-b px-3 py-2">{p.name}</td>
-                  <td className="border-b px-3 py-2 text-slate-600">
-                    {p.description}
-                  </td>
-                  <td className="border-b px-3 py-2 text-right">
-                    {Number(p.price).toFixed(2)} €
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <main className="mx-auto max-w-5xl space-y-8 p-6">
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Products</h1>
+          {currentUser && (
+            <p className="text-sm text-slate-600">
+              Willkommen {currentUser.name}
+            </p>
+          )}
         </div>
-      </section>
 
-      <section className="rounded-md bg-white p-4 shadow-sm">
-        <h2 className="mb-3 text-lg font-medium">Add Product</h2>
-        <form className="space-y-3" onSubmit={handleSubmit}>
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-slate-700">
-              Name
-            </label>
-            <input
-              className="w-full rounded border px-2 py-1 text-sm"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-slate-700">
-              Description
-            </label>
-            <textarea
-              className="h-20 w-full rounded border px-2 py-1 text-sm"
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-slate-700">
-              Price
-            </label>
-            <input
-              className="w-full rounded border px-2 py-1 text-sm"
-              name="price"
-              type="number"
-              step="0.01"
-              min="0"
-              value={form.price}
-              onChange={handleChange}
-              required
-            />
-          </div>
+        {currentUser && (
           <button
-            type="submit"
-            className="w-full rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            onClick={logout}
+            className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
           >
-            Save
+            Logout
           </button>
-        </form>
+        )}
+      </header>
+
+      {error && (
+        <p className="rounded bg-red-100 px-3 py-2 text-sm text-red-800">
+          {error}
+        </p>
+      )}
+
+      <section className="grid gap-6 md:grid-cols-[2fr,1fr]">
+        <div>
+          <h2 className="mb-2 text-lg font-medium">Product list</h2>
+          {loading && products.length === 0 ? (
+            <p>Loading…</p>
+          ) : products.length === 0 ? (
+            <p className="text-sm text-slate-500">No products yet.</p>
+          ) : (
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="py-2 text-left">Name</th>
+                  <th className="py-2 text-left">Description</th>
+                  <th className="py-2 text-left">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((p) => (
+                  <tr key={p.id} className="border-b">
+                    <td className="py-1 pr-2">{p.name}</td>
+                    <td className="py-1 pr-2">{p.description || "—"}</td>
+                    <td className="py-1 pr-2">{p.price}</td>
+                    <td className="py-1 pr-2 text-right">
+                      {currentUser && p.ownerId === currentUser.id && (
+                        <DeleteProductButton
+                          productId={p.id}
+                          onDeleted={loadProducts}
+                        />
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {currentUser ? (
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4 rounded border p-4 shadow-sm"
+          >
+            <h2 className="text-lg font-medium">Add product</h2>
+
+            <div className="space-y-1">
+              <label className="block text-sm font-medium" htmlFor="name">
+                Name
+              </label>
+              <input
+                id="name"
+                name="name"
+                className="w-full rounded border px-3 py-2 text-sm"
+                value={form.name}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label
+                className="block text-sm font-medium"
+                htmlFor="description"
+              >
+                Description
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                className="w-full rounded border px-3 py-2 text-sm"
+                value={form.description}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-sm font-medium" htmlFor="price">
+                Price
+              </label>
+              <input
+                id="price"
+                name="price"
+                type="number"
+                step="0.01"
+                min="0"
+                className="w-full rounded border px-3 py-2 text-sm"
+                value={form.price}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-70"
+            >
+              {loading ? "Saving…" : "Create product"}
+            </button>
+          </form>
+        ) : (
+          <div className="rounded border p-4 text-sm text-slate-600">
+            Bitte{" "}
+            <a href="/login" className="text-slate-900 underline">
+              einloggen
+            </a>{" "}
+            oder{" "}
+            <a href="/register" className="text-slate-900 underline">
+              registrieren
+            </a>
+            , um neue Produkte anzulegen.
+          </div>
+        )}
       </section>
-    </div>
+    </main>
   );
 }
