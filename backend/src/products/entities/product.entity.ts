@@ -15,8 +15,8 @@ export class Product {
   @Column()
   price: number;
 
-  @Column({ type: 'uuid', nullable: true })
-  ownerId: string | null;
+  @Column({ type: 'uuid', nullable: false })
+  ownerId: string;
 
   // @ManyToOne(() => Customer, (customer) => customer.products)
   // customer: Customer;

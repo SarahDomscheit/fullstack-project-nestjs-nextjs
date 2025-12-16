@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "../stores/auth-store";
 import { apiFetch } from "../lib/api";
+import { DeleteProductButton } from "../components/DeleteProductButton";
 
 type Product = {
   id: string;
   name: string;
   description?: string;
   price: number;
+  ownerId?: string;
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
@@ -41,6 +43,11 @@ export default function ProductsPage() {
     loadProducts();
   }, []);
 
+  useEffect(() => {
+    console.log("products", products);
+    console.log("currentUser", currentUser);
+  }, [products, currentUser]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -70,6 +77,7 @@ export default function ProductsPage() {
         throw new Error(text || `Failed to create product (${res.status})`);
       }
       const created: Product = await res.json();
+
       setProducts((prev) => [...prev, created]);
       setForm({ name: "", description: "", price: "" });
     } catch (err: any) {

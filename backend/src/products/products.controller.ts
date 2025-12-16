@@ -21,8 +21,11 @@ export class ProductsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
+  create(@Request() req, @Body() createProductDto: CreateProductDto) {
+    return this.productsService.createForUser(
+      req.user.userId,
+      createProductDto,
+    );
   }
 
   @Public()
