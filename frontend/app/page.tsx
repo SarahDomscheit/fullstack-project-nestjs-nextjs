@@ -47,11 +47,11 @@ export default function HomePage() {
         <div>
           <h1 className="text-3xl font-bold">Minimal Shop</h1>
           <p className="text-sm text-slate-600">
-            Ein kleiner Demo‑Shop mit NestJS &amp; Next.js.
+            A small demo-shop with Nestjs &amp; Next.js.
           </p>
           {currentUser && (
             <p className="mt-2 text-sm text-slate-700">
-              Willkommen zurück, {currentUser.name ?? currentUser.email}!
+              Welcome back, {currentUser.name ?? currentUser.email}!
             </p>
           )}
         </div>
@@ -69,7 +69,7 @@ export default function HomePage() {
                 href="/register"
                 className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
               >
-                Registrieren
+                Register
               </Link>
             </>
           )}
@@ -87,12 +87,12 @@ export default function HomePage() {
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Letzte Produkte</h2>
+          <h2 className="text-lg font-semibold">Latest Products</h2>
           <Link
             href="/products"
             className="text-sm font-medium text-slate-900 underline"
           >
-            Alle Produkte ansehen
+            View all products
           </Link>
         </div>
 
@@ -105,9 +105,7 @@ export default function HomePage() {
         {loading && products.length === 0 ? (
           <p>Loading…</p>
         ) : products.length === 0 ? (
-          <p className="text-sm text-slate-500">
-            Es wurden noch keine Produkte angelegt.
-          </p>
+          <p className="text-sm text-slate-500">No products available.</p>
         ) : (
           <ul className="grid gap-4 md:grid-cols-2">
             {products.map((p) => (
@@ -126,10 +124,9 @@ export default function HomePage() {
       <section className="space-y-2">
         {!currentUser && (
           <>
-            <h2 className="text-lg font-semibold">Loslegen</h2>
+            <h2 className="text-lg font-semibold">Get Started</h2>
             <p className="text-sm text-slate-600">
-              Melde dich an oder registriere dich, um eigene Produkte anzulegen
-              und zu verwalten.
+              Please log in or register to create and manage your own products.
             </p>
           </>
         )}
@@ -139,7 +136,7 @@ export default function HomePage() {
             href="/products"
             className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
           >
-            Zum Produktbereich
+            Go to Products
           </Link>
         </div>
       </section>

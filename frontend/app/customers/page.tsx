@@ -64,12 +64,12 @@ export default function ProfilePage() {
 
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(text || "Update fehlgeschlagen");
+        throw new Error(text || "Update failed");
       }
 
       const updatedCustomer = await res.json();
 
-      // Aktualisiere den currentUser im Store
+      // Update the currentUser in the store
       useAuthStore.setState({
         currentUser: {
           id: updatedCustomer.id,
@@ -81,7 +81,7 @@ export default function ProfilePage() {
       setSuccess(true);
       setForm((prev) => ({ ...prev, password: "" }));
     } catch (err: any) {
-      setError(err.message ?? "Fehler beim Aktualisieren");
+      setError(err.message ?? "Error updating profile");
     } finally {
       setLoading(false);
     }
@@ -94,7 +94,7 @@ export default function ProfilePage() {
   return (
     <main className="mx-auto max-w-2xl space-y-8 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Mein Profil</h1>
+        <h1 className="text-2xl font-semibold">My Profile</h1>
         <button
           onClick={logout}
           className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
@@ -115,7 +115,7 @@ export default function ProfilePage() {
 
         {success && (
           <p className="rounded bg-green-100 px-3 py-2 text-sm text-green-800">
-            Profil erfolgreich aktualisiert!
+            Profile updated successfully!
           </p>
         )}
 
@@ -150,7 +150,7 @@ export default function ProfilePage() {
 
         <div className="space-y-1">
           <label className="block text-sm font-medium" htmlFor="password">
-            Neues Passwort (optional)
+            New Password (optional)
           </label>
           <input
             id="password"
@@ -159,7 +159,7 @@ export default function ProfilePage() {
             className="w-full rounded border px-3 py-2 text-sm"
             value={form.password}
             onChange={handleChange}
-            placeholder="Leer lassen, um Passwort nicht zu ändern"
+            placeholder="Leave empty to keep current password"
           />
         </div>
 
@@ -168,7 +168,7 @@ export default function ProfilePage() {
           disabled={loading}
           className="w-full rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-70"
         >
-          {loading ? "Speichert…" : "Profil aktualisieren"}
+          {loading ? "Saving…" : "Update Profile"}
         </button>
       </form>
     </main>

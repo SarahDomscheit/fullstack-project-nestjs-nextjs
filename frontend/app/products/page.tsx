@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "../stores/auth-store";
 import { apiFetch } from "../lib/api";
 import { DeleteProductButton } from "../components/DeleteProductButton";
+import Link from "next/link";
 
 type Product = {
   id: string;
@@ -26,7 +27,7 @@ export default function ProductsPage() {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch(`${API_URL}/products`); // public GET
+      const res = await fetch(`${API_URL}/products`);
       if (!res.ok) {
         throw new Error(`Failed to load products (${res.status})`);
       }
@@ -42,11 +43,6 @@ export default function ProductsPage() {
   useEffect(() => {
     loadProducts();
   }, []);
-
-  useEffect(() => {
-    console.log("products", products);
-    console.log("currentUser", currentUser);
-  }, [products, currentUser]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -93,9 +89,7 @@ export default function ProductsPage() {
         <div>
           <h1 className="text-2xl font-semibold">Products</h1>
           {currentUser && (
-            <p className="text-sm text-slate-600">
-              Willkommen {currentUser.name}
-            </p>
+            <p className="text-sm text-slate-600">Welcome {currentUser.name}</p>
           )}
         </div>
 
@@ -137,12 +131,20 @@ export default function ProductsPage() {
                     <td className="py-1 pr-2">{p.name}</td>
                     <td className="py-1 pr-2">{p.description || "—"}</td>
                     <td className="py-1 pr-2">{p.price}</td>
-                    <td className="py-1 pr-2 text-right">
+                    <td className="py-1 pr-2 text-right flex gap-2 justify-end">
                       {currentUser && p.ownerId === currentUser.id && (
-                        <DeleteProductButton
-                          productId={p.id}
-                          onDeleted={loadProducts}
-                        />
+                        <>
+                          <Link
+                            href={`/products/${p.id}`}
+                            className="rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors"
+                          >
+                            Edit
+                          </Link>
+                          <DeleteProductButton
+                            productId={p.id}
+                            onDeleted={loadProducts}
+                          />
+                        </>
                       )}
                     </td>
                   </tr>
@@ -216,15 +218,15 @@ export default function ProductsPage() {
           </form>
         ) : (
           <div className="rounded border p-4 text-sm text-slate-600">
-            Bitte{" "}
+            Please{" "}
             <a href="/login" className="text-slate-900 underline">
-              einloggen
+              log in
             </a>{" "}
-            oder{" "}
+            or{" "}
             <a href="/register" className="text-slate-900 underline">
-              registrieren
+              register
             </a>
-            , um neue Produkte anzulegen.
+            , to create new products.
           </div>
         )}
       </section>
