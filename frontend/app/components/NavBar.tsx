@@ -21,7 +21,9 @@ const NavBar = () => {
 
       <div className="flex items-center gap-4 text-sm">
         <Link href="/products">Products</Link>
-        <Link href="/customers">Customers</Link>
+        <Link href="/orders">Orders</Link>
+        <Link href="/customers">Edit Profile</Link>
+        <Link href="/checkout">Checkout</Link>
 
         {currentUser ? (
           <>

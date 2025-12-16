@@ -5,6 +5,7 @@ import { useAuthStore } from "../stores/auth-store";
 import { apiFetch } from "../lib/api";
 import { DeleteProductButton } from "../components/DeleteProductButton";
 import Link from "next/link";
+import { useCartStore } from "../stores/cart-store";
 
 type Product = {
   id: string;
@@ -18,6 +19,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 export default function ProductsPage() {
   const { currentUser, logout } = useAuthStore();
+  const addItem = useCartStore((s) => s.addItem);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -131,6 +133,24 @@ export default function ProductsPage() {
                     <td className="py-1 pr-2">{p.name}</td>
                     <td className="py-1 pr-2">{p.description || "—"}</td>
                     <td className="py-1 pr-2">{p.price}</td>
+                    {p.ownerId !== currentUser?.id && (
+                      <td>
+                        {" "}
+                        <button
+                          onClick={() =>
+                            addItem({
+                              productId: p.id,
+                              name: p.name,
+                              price: p.price,
+                            })
+                          }
+                          className="rounded bg-green-500 px-3 py-1 text-xs text-white"
+                        >
+                          Add to Cart
+                        </button>
+                      </td>
+                    )}
+
                     <td className="py-1 pr-2 text-right flex gap-2 justify-end">
                       {currentUser && p.ownerId === currentUser.id && (
                         <>

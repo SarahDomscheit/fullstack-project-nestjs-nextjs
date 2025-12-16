@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { OrdersModule } from './orders/orders.module';
 import { Product } from './products/entities/product.entity';
 import { Customer } from './customers/entities/customer.entity';
+import { Order } from './orders/entities/order.entity';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { Customer } from './customers/entities/customer.entity';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      entities: [Product, Customer],
+      entities: [Product, Customer, Order],
       synchronize: true, // niemals in Produktion verwenden
       logging: false,
     }),
